@@ -19,8 +19,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final TokenProvider tokenProvider;
 
-    private static final String CURRENT_USER_ENDPOINT = "/current";
-    private static final String RESULT_ENDPOINT = "/result";
+    private static final String CURRENT_USER_ENDPOINT = "users/current";
+    private static final String RESULT_ENDPOINT = "users/result";
+    private static final String LOGOUT_ENDPOINT = "/users/logout";
 
     @Autowired
     public WebSecurityConfig(TokenProvider tokenProvider) {
@@ -47,6 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, CURRENT_USER_ENDPOINT).authenticated()
+                .antMatchers(HttpMethod.POST, LOGOUT_ENDPOINT).authenticated()
                 .antMatchers(HttpMethod.POST, RESULT_ENDPOINT).authenticated()
                 .anyRequest().permitAll()
                 .and()
