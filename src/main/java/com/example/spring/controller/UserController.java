@@ -1,6 +1,6 @@
 package com.example.spring.controller;
 
-
+import com.example.spring.dto.Pop;
 import com.example.spring.dto.ResponseMessage;
 import com.example.spring.dto.UserCredentials;
 import com.example.spring.entity.User;
@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -17,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -31,11 +35,14 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final TokenProvider tokenProvider;
 
-    public UserController(UserService userService, AuthenticationManager authenticationManager, TokenProvider tokenProvider, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    private final JavaMailSender emailSender;
+
+    public UserController(UserService userService, AuthenticationManager authenticationManager, TokenProvider tokenProvider, BCryptPasswordEncoder bCryptPasswordEncoder, JavaMailSender emailSender) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.emailSender = emailSender;
     }
 
 
@@ -43,32 +50,32 @@ public class UserController {
     @PostMapping(value = "/register")
     public ResponseEntity<ResponseMessage> createUser(@RequestBody User newUser) {
 
+
         boolean admin = newUser.getUsername().contains("MERA");
 
         if (userService.find(newUser.getUsername()) != null) {
             logger.error("username Already exist " + newUser.getUsername());
             return new ResponseEntity<>(new ResponseMessage("User already exists"), HttpStatus.CONFLICT);
         }
-        newUser.setRole(admin?"admin":"user");
+        newUser.setRole(admin ? "admin" : "user");
         newUser.setPassword(bCryptPasswordEncoder.encode(newUser.getPassword()));
         userService.save(newUser);
 
-        return new ResponseEntity<>(new ResponseMessage("User successfully created"), HttpStatus.OK);
+
+        return new ResponseEntity<>(new ResponseMessage("User successfully created, you can try to login"), HttpStatus.OK);
     }
 
     @CrossOrigin
     @PostMapping("/login")
     public ResponseEntity<ResponseMessage> user(@RequestBody UserCredentials data) {
-        if (data.getUsername() == null || data.getPassword() == null) {
-            logger.error("username or pass is null");
-            return new ResponseEntity<>(new ResponseMessage("Username or password is null"), HttpStatus.BAD_REQUEST);
-        }
 
         try {
             String username = data.getUsername();
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, data.getPassword()));
             String token = tokenProvider.resolveToken(username);
-            return new ResponseEntity<>(new ResponseMessage(token), HttpStatus.OK);
+            User user = userService.getCurrentUser(username);
+            List questions = userService.getAllQuestions();
+            return new ResponseEntity<>(new ResponseMessage(token, user, questions), HttpStatus.OK);
         } catch (AuthenticationException e) {
             return new ResponseEntity<>(new ResponseMessage("Wrong user or password"), HttpStatus.UNAUTHORIZED);
         }
@@ -88,14 +95,51 @@ public class UserController {
     }
 
     @CrossOrigin
-    @GetMapping(value = "/current")
-    public ResponseEntity<ResponseMessage> getCurrent(Principal user) {
+    @PostMapping(value = "/result")
+    public ResponseEntity<ResponseMessage> setResult(Principal user, @RequestBody UserCredentials result) {
+        System.out.println("Я зашел");
+        System.out.println(result);
         try {
-            User data = userService.getCurrentUser(user.getName());
-            return new ResponseEntity<>(new ResponseMessage("logout successful",data), HttpStatus.OK);
+            User user1 = userService.setResult(user.getName(), result.getResult());
+            return new ResponseEntity<>(new ResponseMessage("Result added", user1), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @CrossOrigin
+    @GetMapping(value = "/list")
+    public ResponseEntity<ResponseMessage> getCurrent(Principal user) {
+        try {
+            List users = userService.getAll();
+            return new ResponseEntity<>(new ResponseMessage("All users were got", users), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/email")
+    public ResponseEntity<ResponseMessage> sendEmail(@RequestBody Pop list) {
+        String[] emails = list.getEmails();
+        System.out.println(emails);
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        try {
+            for (Object user : emails) {
+
+                message.setTo(user.toString());
+                message.setSubject("SummerSchool");
+                message.setText("Congratulations! You have successfully completed the test, so we invite you to an interview.");
+                this.emailSender.send(message);
+            }
+            return new ResponseEntity<>(new ResponseMessage("All is OK"), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }

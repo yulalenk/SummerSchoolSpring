@@ -9,8 +9,6 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserCredentials implements Serializable {
-    private String username;
-    private String password;
-    private Integer result;
+public class Pop implements Serializable {
+    private String[] emails;
 }

@@ -11,17 +11,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
 
     private final TokenProvider tokenProvider;
 
-    private static final String CURRENT_USER_ENDPOINT = "users/current";
-    private static final String RESULT_ENDPOINT = "users/result";
+    private static final String USER_ENDPOINT = "/users/list";
+    private static final String RESULT_ENDPOINT = "/users/result";
     private static final String LOGOUT_ENDPOINT = "/users/logout";
+    private static final String EMAIL_ENDPOINT = "/users/email";
 
     @Autowired
     public WebSecurityConfig(TokenProvider tokenProvider) {
@@ -47,11 +50,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, CURRENT_USER_ENDPOINT).authenticated()
+                .antMatchers(HttpMethod.GET, USER_ENDPOINT).authenticated()
                 .antMatchers(HttpMethod.POST, LOGOUT_ENDPOINT).authenticated()
                 .antMatchers(HttpMethod.POST, RESULT_ENDPOINT).authenticated()
+                .antMatchers(HttpMethod.POST, EMAIL_ENDPOINT).authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .apply(new SecurityConfig(tokenProvider));
+    }
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:3000")
+                .allowedMethods("*");
     }
 }
