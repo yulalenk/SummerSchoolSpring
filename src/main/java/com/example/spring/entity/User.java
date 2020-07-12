@@ -8,14 +8,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
-@Table(name="USERS")
+@Table(name = "USERS")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,6 +29,8 @@ public class User implements UserDetails {
 
     private Integer result;
 
+    @OneToOne
+    private Quiz quiz;
 
     @JsonIgnore
     @Override
@@ -60,7 +60,7 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(((getRole()== null))?"user":getRole()));
+        authorities.add(new SimpleGrantedAuthority(((getRole() == null)) ? "user" : getRole()));
         return authorities;
     }
 

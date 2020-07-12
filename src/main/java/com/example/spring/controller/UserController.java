@@ -1,8 +1,6 @@
 package com.example.spring.controller;
 
-import com.example.spring.dto.Pop;
-import com.example.spring.dto.ResponseMessage;
-import com.example.spring.dto.UserCredentials;
+import com.example.spring.model.*;
 import com.example.spring.entity.User;
 import com.example.spring.security.TokenProvider;
 import com.example.spring.service.UserService;
@@ -12,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -19,7 +19,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -100,7 +99,7 @@ public class UserController {
         System.out.println("Я зашел");
         System.out.println(result);
         try {
-            User user1 = userService.setResult(user.getName(), result.getResult());
+            User user1 = userService.setResult(user.getName(), result.getResult(),result.getQuizData());
             return new ResponseEntity<>(new ResponseMessage("Result added", user1), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,5 +140,13 @@ public class UserController {
             return new ResponseEntity<>(new ResponseMessage(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
+
+
+    @MessageMapping("/hello")
+    @SendTo("/topic/greetings")
+    public Greeting greeting(HelloMessage message) throws Exception {
+        return new Greeting("Hello, " + message.getName() + "!");
+    }
+
 
 }

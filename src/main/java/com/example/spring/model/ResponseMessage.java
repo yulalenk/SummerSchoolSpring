@@ -1,12 +1,10 @@
-package com.example.spring.dto;
+package com.example.spring.model;
 
 import com.example.spring.entity.Question;
 import com.example.spring.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.http.HttpHeaders;
 
-import java.security.Principal;
 import java.util.List;
 
 @Data

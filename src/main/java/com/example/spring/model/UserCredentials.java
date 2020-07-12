@@ -1,4 +1,4 @@
-package com.example.spring.dto;
+package com.example.spring.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,4 +13,5 @@ public class UserCredentials implements Serializable {
     private String username;
     private String password;
     private Integer result;
+    private QuizData quizData;
 }
