@@ -30,8 +30,9 @@ public class UserService implements UserDetailsService {
     public UserService(UserRepository userRepository, QuestionRepository questionRepository, QuizRepository quizRepository) {
 
         this.userRepository = userRepository;
-        this.questionRepository= questionRepository;
-        this.quizRepository = quizRepository;    }
+        this.questionRepository = questionRepository;
+        this.quizRepository = quizRepository;
+    }
 
     public User save(User user) {
         return userRepository.saveAndFlush(user);
@@ -52,17 +53,8 @@ public class UserService implements UserDetailsService {
 
         System.out.println("Пытаюсь");
         User user = userRepository.findOneByUsername(username);
-        user.setQuiz(quizRepository.saveAndFlush(new Quiz(quizData.getAnswer1(),quizData.getAnswer2(),quizData.getAnswer3(),quizData.getAnswer4())));
-//        newQuiz.setAnswer2(quizData.getAnswer2());
-//        newQuiz.setAnswer1(quizData.getAnswer1());
-//        newQuiz.setAnswer3(quizData.getAnswer3());
-//        newQuiz.setAnswer4(quizData.getAnswer4());
-//        quizRepository.saveAndFlush(newQuiz);
-//        System.out.println(newQuiz);
-        System.out.println(user);
-        System.out.println(user.getUsername()+" " + result);
+        user.setQuiz(quizRepository.saveAndFlush(new Quiz(quizData.getAnswer1(), quizData.getAnswer2(), quizData.getAnswer3(), quizData.getAnswer4())));
         user.setResult(result);
-//        user.setQuiz(newQuiz);
         userRepository.save(user);
         return user;
     }
@@ -78,12 +70,12 @@ public class UserService implements UserDetailsService {
         return userRepository.findByAuthTokenEquals(token);
     }
 
-    public List<User> getAll(){
+    public List<User> getAll() {
         return
                 userRepository.findAllByRole("user");
     }
 
-    public List<Question> getAllQuestions(){
+    public List<Question> getAllQuestions() {
         return questionRepository.findAll();
     }
 

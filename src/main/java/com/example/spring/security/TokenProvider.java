@@ -35,6 +35,7 @@ public class TokenProvider {
 
         return token;
     }
+
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = this.userService.findByAuthToken(token);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());

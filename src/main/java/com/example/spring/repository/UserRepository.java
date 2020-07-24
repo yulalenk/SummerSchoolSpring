@@ -13,3 +13,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByAuthTokenEquals(String token);
     List<User> findAllByRole(String role);
 }
+
